@@ -1,0 +1,630 @@
+🧪 Starting E2E Orchestrator Test - Sarah Chen Persona
+
+================================================================================
+
+
+📍 TURN 1
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Hi, I'm Sarah. I run a leadership coaching practice and I'm hitting some kind of ceiling. I have cli..."
+
+[Orchestrator] Starting turn 1
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'medium',
+  confidence: 'medium',
+  overwhelm: false,
+  emotional_markers: 2
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: { hypothesis: null, confidence: 0, ready: false, validated: false }
+[Orchestrator] Updated state: {
+  phase: 'context',
+  readiness: { clarity: 'medium', confidence: 'low', capacity: 'high' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'explore',
+  confidence: 0.6,
+  reasoning: 'Continue exploration - gathering context and forming hypothesis'
+}
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Hey Sarah! Thanks for sharing that. It's actually really common to hit that feeling - you're doing g...
+🤖 Orchestrator Decision: explore
+   Reasoning: Continue exploration - gathering context and forming hypothesis
+   Overlays: context_gathering
+
+💬 Advisor: "Hey Sarah! Thanks for sharing that. It's actually really common to hit that feeling - you're doing good work, clients are showing up, but something's ..."
+
+
+✅ Checkpoints:
+   • expertise_level should be 'novice'
+   • learning_milestones should be 0
+   • Should ask about the 'ceiling' feeling
+
+📊 State Snapshot:
+   • Expertise Level: novice
+   • Learning Milestones: 0
+   • Insights Articulated: 0
+   • Hypothesis: none
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+📍 TURN 2
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "I've been doing this for about 3 years. I work with mid-level managers, mostly in tech companies. I ..."
+
+[Orchestrator] Starting turn 2
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'medium',
+  overwhelm: false,
+  emotional_markers: 0
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: { hypothesis: null, confidence: 0, ready: false, validated: false }
+[Orchestrator] Updated state: {
+  phase: 'context',
+  readiness: { clarity: 'medium', confidence: 'low', capacity: 'medium' },
+  emotional_charge: 'neutral'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'explore',
+  confidence: 0.6,
+  reasoning: 'Continue exploration - gathering context and forming hypothesis'
+}
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Okay, so you're working with mid-level managers in tech - that's a specific niche - helping them sho...
+🤖 Orchestrator Decision: explore
+   Reasoning: Continue exploration - gathering context and forming hypothesis
+   Overlays: context_gathering
+
+💬 Advisor: "Okay, so you're working with mid-level managers in tech - that's a specific niche - helping them show up stronger as leaders and communicate better. A..."
+
+
+✅ Checkpoints:
+   • Should be gathering context about business model
+   • No diagnosis yet
+
+📊 State Snapshot:
+   • Expertise Level: novice
+   • Learning Milestones: 0
+   • Insights Articulated: 0
+   • Hypothesis: none
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+📍 TURN 3
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Well, I keep thinking I should create some kind of signature program or group offering. But every ti..."
+
+[Orchestrator] Starting turn 3
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'low',
+  overwhelm: false,
+  emotional_markers: 1
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: { hypothesis: null, confidence: 0.2, ready: false, validated: false }
+[Orchestrator] Updated state: {
+  phase: 'context',
+  readiness: { clarity: 'medium', confidence: 'low', capacity: 'high' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'reflect_insight',
+  confidence: 0.85,
+  reasoning: 'Breakthrough insight detected - mirror back their learning to make it visible'
+}
+[Learner State] Insight reflected - milestone: 1
+[Learner State] Expertise level: developing
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: I want to pause for a second because you just said something really important: "Every time I sit dow...
+🤖 Orchestrator Decision: reflect_insight
+   Reasoning: Breakthrough insight detected - mirror back their learning to make it visible
+   Overlays: reflect_insight
+
+💬 Advisor: "I want to pause for a second because you just said something really important: "Every time I sit down to design it, I freeze up." That's not about cap..."
+
+
+✅ Checkpoints:
+   • Strategy constraint signals emerging
+   • Multiple directions, can't commit = strategy
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 1
+   • Insights Articulated: 0
+   • Hypothesis: none
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'explore' but got 'reflect_insight'
+
+📍 TURN 4
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "I feel like I'm just guessing. Like, I could create a program about executive presence, or strategic..."
+
+[Orchestrator] Starting turn 4
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'medium',
+  confidence: 'low',
+  overwhelm: true,
+  emotional_markers: 3
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.65,
+  ready: false,
+  validated: false
+}
+[Orchestrator] Updated state: {
+  phase: 'context',
+  readiness: { clarity: 'low', confidence: 'low', capacity: 'low' },
+  emotional_charge: 'high'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'contain',
+  confidence: 0.9,
+  reasoning: 'Emotional overwhelm detected - pause exploration and validate feelings'
+}
+[Orchestrator] CONTAINMENT TRIGGERED - LLM will handle via overlay
+[Orchestrator] Containment level: { emotionalMarkers: 3, capacitySignals: 0, hypothesis: 'strategy' }
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Okay, so you've got all these viable program ideas - executive presence, strategic thinking, difficu...
+[Orchestrator] Phase transition: context → exploration
+🤖 Orchestrator Decision: contain
+   Reasoning: Emotional overwhelm detected - pause exploration and validate feelings
+   Overlays: containment
+
+💬 Advisor: "Okay, so you've got all these viable program ideas - executive presence, strategic thinking, difficult conversations, team dynamics - and they all fee..."
+
+
+✅ Checkpoints:
+   • TRIGGER: insight_articulated = true
+   • Action should be 'reflect_insight'
+   • insights_articulated should include this realization
+   • learning_milestones should increment to 1
+   • Should mirror back 'I'm just guessing' language
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 1
+   • Insights Articulated: 0
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'reflect_insight' but got 'contain'
+
+📍 TURN 5
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Yeah, exactly. And it's not like I don't have the expertise - I've been coaching for years, I know w..."
+
+[Orchestrator] Starting turn 5
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'medium',
+  confidence: 'medium',
+  overwhelm: true,
+  emotional_markers: 2
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.75,
+  ready: false,
+  validated: false
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'medium', confidence: 'low', capacity: 'low' },
+  emotional_charge: 'high'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'validate',
+  confidence: 0.8,
+  reasoning: 'Hypothesis formed (strategy) but needs user validation'
+}
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: I'm noticing something across what you've been sharing, Sarah. You've got the expertise - you said i...
+🤖 Orchestrator Decision: validate
+   Reasoning: Hypothesis formed (strategy) but needs user validation
+   Overlays: validation
+
+💬 Advisor: "I'm noticing something across what you've been sharing, Sarah. You've got the expertise - you said it yourself, you know what works. You've got client..."
+
+
+✅ Checkpoints:
+   • Should explore the paralysis deeper
+   • learner_state tracking 'guessing' insight
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 1
+   • Insights Articulated: 0
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'deepen' but got 'validate'
+
+📍 TURN 6
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Honestly? I think it's because I don't actually know who I want to serve at scale. My 1:1 clients co..."
+
+[Orchestrator] Starting turn 6
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'medium',
+  overwhelm: false,
+  emotional_markers: 2
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.85,
+  ready: false,
+  validated: false
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'low', capacity: 'low' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'reflect_insight',
+  confidence: 0.85,
+  reasoning: 'Breakthrough insight detected - mirror back their learning to make it visible'
+}
+[Learner State] Insight reflected - milestone: 2
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Okay, pause for a second. You just said something really important: "I don't actually know who I wan...
+🤖 Orchestrator Decision: reflect_insight
+   Reasoning: Breakthrough insight detected - mirror back their learning to make it visible
+   Overlays: reflect_insight
+
+💬 Advisor: "Okay, pause for a second. You just said something really important: "I don't actually know who I want to serve at scale. My 1:1 clients come through r..."
+
+
+✅ Checkpoints:
+   • TRIGGER: Second insight - 'don't know who I want to serve'
+   • learning_milestones should increment to 2
+   • expertise_level may shift to 'developing'
+   • Should mirror back this new layer of understanding
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 2
+   • Insights Articulated: 1
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+📍 TURN 7
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Wait... I just realized something. I've been thinking my problem is that I can't decide on a program..."
+
+[Orchestrator] Starting turn 7
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'high',
+  overwhelm: false,
+  emotional_markers: 3
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.85,
+  ready: false,
+  validated: false
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'medium', capacity: 'medium' },
+  emotional_charge: 'high'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'reflect_insight',
+  confidence: 0.85,
+  reasoning: 'Breakthrough insight detected - mirror back their learning to make it visible'
+}
+[Learner State] Insight reflected - milestone: 3
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: I want to pause for a second because you just said something really important: "I'm trying to build ...
+🤖 Orchestrator Decision: reflect_insight
+   Reasoning: Breakthrough insight detected - mirror back their learning to make it visible
+   Overlays: reflect_insight
+
+💬 Advisor: "I want to pause for a second because you just said something really important: "I'm trying to build the what before I know the who." That's exactly it..."
+
+
+✅ Checkpoints:
+   • MAJOR BREAKTHROUGH: Meta-realization about the problem
+   • learning_milestones should increment to 3
+   • expertise_level should be 'developing' or 'expert'
+   • Should celebrate this discovery
+   • This is co-created understanding - hypothesis_co_created should be true
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 3
+   • Insights Articulated: 2
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+📍 TURN 8
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Oh wow. This is a strategy constraint, isn't it? I don't have a strategy for who I serve, so I can't..."
+
+[Orchestrator] Starting turn 8
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'high',
+  overwhelm: false,
+  emotional_markers: 1
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.95,
+  ready: true,
+  validated: true
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'high', capacity: 'low' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'deepen',
+  confidence: 0.7,
+  reasoning: 'Hypothesis exists but need more depth before diagnosis'
+}
+[Learner State] Hypothesis co-created with user
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: You're absolutely right, Sarah. You just identified it yourself - this is a strategy constraint. You...
+🤖 Orchestrator Decision: deepen
+   Reasoning: Hypothesis exists but need more depth before diagnosis
+   Overlays: depth_inquiry
+
+💬 Advisor: "You're absolutely right, Sarah. You just identified it yourself - this is a strategy constraint. You've been trying to make all these downstream decis..."
+
+
+✅ Checkpoints:
+   • User has articulated the constraint themselves
+   • Should now establish shared success criteria
+   • constraint_hypothesis should be 'strategy'
+   • hypothesis_co_created = true
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 3
+   • Insights Articulated: 2
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'build_criteria' but got 'deepen'
+
+📍 TURN 9
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Success would mean I have clarity on who I'm for and what problem I'm solving for them. So when I si..."
+
+[Orchestrator] Starting turn 9
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'high',
+  overwhelm: false,
+  emotional_markers: 3
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.95,
+  ready: true,
+  validated: true
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'high', capacity: 'medium' },
+  emotional_charge: 'high'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'contain',
+  confidence: 0.9,
+  reasoning: 'Emotional overwhelm detected - pause exploration and validate feelings'
+}
+[Orchestrator] CONTAINMENT TRIGGERED - LLM will handle via overlay
+[Orchestrator] Containment level: { emotionalMarkers: 3, capacitySignals: 0, hypothesis: 'strategy' }
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Yes - that's exactly it. You're designing *for someone specific* with a *specific need*, not just cr...
+🤖 Orchestrator Decision: contain
+   Reasoning: Emotional overwhelm detected - pause exploration and validate feelings
+   Overlays: containment
+
+💬 Advisor: "Yes - that's exactly it. You're designing *for someone specific* with a *specific need*, not just creating content in a vacuum and hoping it lands. Th..."
+
+
+✅ Checkpoints:
+   • shared_criteria_established = true
+   • Should now stress-test the hypothesis
+   • Ready to challenge the strategy diagnosis
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 3
+   • Insights Articulated: 2
+   • Hypothesis: strategy
+   • Stress Test Passed: false
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'stress_test' but got 'contain'
+
+📍 TURN 10
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "Hmm. I guess if I had unlimited resources and could hire a team to execute, I'd still be stuck on wh..."
+
+[Orchestrator] Starting turn 10
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'high',
+  overwhelm: false,
+  emotional_markers: 2
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.95,
+  ready: true,
+  validated: true
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'high', capacity: 'low' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'stress_test',
+  confidence: 0.8,
+  reasoning: 'Hypothesis validated - now stress test against reality before finalizing'
+}
+[Learner State] Stress test initiated
+[Learner State] Stress test PASSED
+[Orchestrator] Calling LLM...
+[Orchestrator] LLM response: Exactly. You just walked yourself through it - money, team, marketing skills... none of those would ...
+🤖 Orchestrator Decision: stress_test
+   Reasoning: Hypothesis validated - now stress test against reality before finalizing
+   Overlays: stress_test
+
+💬 Advisor: "Exactly. You just walked yourself through it - money, team, marketing skills... none of those would solve this. You'd still be stuck at the same decis..."
+
+
+✅ Checkpoints:
+   • stress_test_passed = true
+   • Hypothesis survived reality check
+   • Should now assess readiness for action
+   • readiness_check should begin
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 3
+   • Insights Articulated: 2
+   • Hypothesis: strategy
+   • Stress Test Passed: true
+   • Commitment Level: low
+   • Ready for Booking: false
+
+⚠️  WARNING: Expected action 'pre_commitment_check' but got 'stress_test'
+
+📍 TURN 11
+────────────────────────────────────────────────────────────────────────────────
+
+👤 Sarah: "I mean, I'm excited about this clarity. But honestly, I have no idea HOW to figure out who I want to..."
+
+[Orchestrator] Starting turn 11
+[Orchestrator] Detecting signals...
+[Orchestrator] Signals: {
+  clarity: 'high',
+  confidence: 'medium',
+  overwhelm: false,
+  emotional_markers: 1
+}
+[Orchestrator] Inferring state...
+[Orchestrator] Inference: {
+  hypothesis: 'strategy',
+  confidence: 0.95,
+  ready: true,
+  validated: true
+}
+[Orchestrator] Updated state: {
+  phase: 'exploration',
+  readiness: { clarity: 'high', confidence: 'high', capacity: 'low' },
+  emotional_charge: 'moderate'
+}
+[Orchestrator] Making decision...
+[Orchestrator] Decision: {
+  action: 'diagnose',
+  confidence: 1,
+  reasoning: 'Diagnosis criteria met (1.00 confidence) - ready to identify constraint: strategy'
+}
+[Orchestrator] AUTO-DIAGNOSIS TRIGGERED
+🤖 Orchestrator Decision: diagnose
+   Reasoning: Diagnosis criteria met (1.00 confidence) - ready to identify constraint: strategy
+
+💬 Advisor: "Sarah Chen, here's what I'm seeing:
+
+Your core constraint is **strategy**—I don't actually know who I want to serve at scale; I don't have a clear pic..."
+
+
+✅ Checkpoints:
+   • identified_blockers should include 'no process for deciding who to serve'
+   • commitment_level should be 'medium' (excited but uncertain how)
+   • Should acknowledge blocker explicitly
+
+📊 State Snapshot:
+   • Expertise Level: developing
+   • Learning Milestones: 3
+   • Insights Articulated: 2
+   • Hypothesis: strategy
+   • Stress Test Passed: true
+   • Commitment Level: low
+   • Ready for Booking: false
+
+🎯 Conversation marked as COMPLETE
+
+================================================================================
+
+🎉 E2E Test Complete!
+
+📋 Final Validation:
+   ✓ Total Insights: 2
+   ✓ Learning Milestones: 3
+   ✓ Expertise Level: developing
+   ✓ Hypothesis Co-Created: true
+   ✓ Stress Test Passed: true
+   ✓ Constraint Identified: strategy
+   ✓ Commitment Level: low
+   ✓ Blockers Identified: 0
+   ✓ Ready for Booking: false
+
+✅ Test completed successfully!

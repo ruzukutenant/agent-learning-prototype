@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoachMira Advisor — UX Flow Prototype</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-teal: #14B8A6;
+    --brand-purple: #8B5CF6;
+    --brand-indigo: #6366F1;
+    --brand-peach: #FEE4D9;
+    --brand-lavender: #EDE4F7;
+    --violet-600: #7c3aed;
+    --violet-700: #6d28d9;
+    --teal-500: #14b8a6;
+    --teal-600: #0d9488;
+    --amber-500: #f59e0b;
+    --orange-600: #ea580c;
+    --emerald-500: #10b981;
+    --emerald-600: #059669;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --gradient-page: linear-gradient(135deg, #FEE4D9 0%, #FEFEFE 35%, #FEFEFE 50%, #EDE4F7 85%, #E5D9F2 100%);
+    --gradient-cta: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-purple) 100%);
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #1a1a2e;
+    color: var(--gray-900);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Navigation */
+  .nav-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(17, 17, 34, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-bar .nav-left { display: flex; align-items: center; gap: 16px; }
+  .nav-bar .nav-title {
+    font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9);
+    letter-spacing: -0.01em;
+  }
+  .nav-bar .nav-counter {
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    font-weight: 500;
+  }
+  .nav-bar .nav-right { display: flex; align-items: center; gap: 8px; }
+  .nav-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .nav-btn.prev {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+  }
+  .nav-btn.prev:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-btn.prev:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn.next {
+    background: var(--brand-purple); color: #fff;
+  }
+  .nav-btn.next:hover { background: var(--violet-600); }
+  .nav-btn.next:disabled { opacity: 0.3; cursor: default; }
+
+  /* Dot indicators */
+  .dots { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); transition: all 0.25s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--brand-purple); transform: scale(1.25); }
+  .dot:hover { background: rgba(255,255,255,0.35); }
+
+  /* Screen description bar */
+  .screen-meta {
+    position: fixed; top: 57px; left: 0; right: 0; z-index: 999;
+    background: rgba(17, 17, 34, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 10px 24px;
+    text-align: center;
+  }
+  .screen-meta h2 {
+    font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.85);
+    margin-bottom: 2px;
+  }
+  .screen-meta p {
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    line-height: 1.4;
+  }
+
+  /* Device frames wrapper */
+  .phone-wrapper {
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 140px 20px 60px;
+    min-height: 100vh;
+  }
+
+  /* Mobile frame */
+  .phone-frame {
+    width: 390px; height: 844px;
+    background: #fff;
+    border-radius: 44px;
+    border: 8px solid #1a1a2e;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 25px 80px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-frame .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 160px; height: 34px; background: #1a1a2e;
+    border-radius: 0 0 20px 20px; z-index: 10;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    overflow-y: auto; overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Scrollbar for phone */
+  .phone-screen::-webkit-scrollbar { width: 0; }
+
+  /* Desktop frame */
+  .desktop-frame {
+    width: 1080px; height: 720px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 25px 80px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .desktop-frame .browser-chrome {
+    height: 40px; background: #2d2d3d;
+    display: flex; align-items: center; padding: 0 14px; gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .desktop-frame .browser-dots {
+    display: flex; gap: 6px;
+  }
+  .desktop-frame .browser-dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .desktop-frame .browser-dots span:nth-child(1) { background: #ff5f57; }
+  .desktop-frame .browser-dots span:nth-child(2) { background: #febc2e; }
+  .desktop-frame .browser-dots span:nth-child(3) { background: #28c840; }
+  .desktop-frame .browser-url {
+    flex: 1; margin-left: 8px;
+    background: rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.5);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .phone-screen.desktop-screen {
+    width: 100%; height: 680px;
+    overflow-y: auto; overflow-x: hidden;
+  }
+  .phone-screen.desktop-screen::-webkit-scrollbar { width: 6px; }
+  .phone-screen.desktop-screen::-webkit-scrollbar-track { background: transparent; }
+  .phone-screen.desktop-screen::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  /* Desktop layout overrides */
+  body.desktop-mode .phone-frame { display: none; }
+  body.desktop-mode .desktop-frame { display: block; }
+
+  body.desktop-mode .notch { display: none; }
+
+  /* Desktop: wider content areas */
+  body.desktop-mode .msg { max-width: 65%; }
+  body.desktop-mode .chat-messages { padding: 24px 40px; }
+  body.desktop-mode .chat-header { padding: 12px 40px; }
+  body.desktop-mode .chat-input { padding: 16px 40px 24px; }
+  body.desktop-mode .chat-input-inner { max-width: 720px; margin: 0 auto; }
+
+  /* Desktop: landing page wider */
+  body.desktop-mode .landing-content { max-width: 640px; }
+  body.desktop-mode .summary-content { max-width: 640px; margin: 0 auto; }
+
+  /* Desktop: modal positioned better */
+  body.desktop-mode .modal-card { max-width: 440px; }
+
+  /* Desktop: email report wider */
+  body.desktop-mode .er-body { max-width: 600px; margin: 0 auto; }
+
+  /* Mode toggle button */
+  .mode-toggle {
+    display: inline-flex; align-items: center; gap: 2px;
+    background: rgba(255,255,255,0.08); border-radius: 8px;
+    padding: 2px; margin-right: 8px;
+  }
+  .mode-toggle button {
+    padding: 6px 12px; border-radius: 6px; border: none;
+    font-size: 12px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: all 0.15s;
+    color: rgba(255,255,255,0.5); background: transparent;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .mode-toggle button.active {
+    background: rgba(255,255,255,0.12); color: #fff;
+  }
+  .mode-toggle button:hover:not(.active) { color: rgba(255,255,255,0.7); }
+
+  /* Screen container */
+  .screen { display: none; width: 100%; min-height: 100%; }
+  .screen.active { display: block; }
+
+  /* ========== SHARED STYLES ========== */
+  .page-bg {
+    background: var(--gradient-page);
+    min-height: 100%;
+  }
+  .badge {
+    display: inline-flex; padding: 6px 16px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 999px; font-size: 13px; font-weight: 600;
+    color: var(--brand-purple); letter-spacing: 0.02em;
+  }
+  .btn-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 16px 40px; border-radius: 12px; font-size: 17px; font-weight: 600;
+    background: var(--gradient-cta); color: #fff; border: none;
+    box-shadow: 0 4px 14px 0 rgba(139,92,246,0.39);
+    letter-spacing: -0.01em; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-teal {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 16px 24px; border-radius: 12px;
+    font-size: 16px; font-weight: 600; font-family: inherit;
+    background: var(--teal-600); color: #fff; border: none;
+    box-shadow: 0 1px 2px rgba(13,148,136,0.2), 0 4px 12px rgba(13,148,136,0.15);
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .btn-teal::before {
+    content: ''; position: absolute; inset: 0; border-radius: 12px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.12), transparent);
+    pointer-events: none;
+  }
+  .btn-violet {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 16px 24px; border-radius: 12px;
+    font-size: 16px; font-weight: 500; font-family: inherit;
+    background: var(--violet-700); color: #fff; border: none;
+    box-shadow: 0 1px 2px rgba(109,40,217,0.2), 0 4px 12px rgba(109,40,217,0.15);
+    cursor: pointer; position: relative; overflow: hidden;
+    letter-spacing: -0.01em;
+  }
+  .btn-violet::before {
+    content: ''; position: absolute; inset: 0; border-radius: 12px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+
+  .input-field {
+    width: 100%; padding: 16px 20px; border-radius: 16px;
+    border: 1px solid var(--gray-300); background: rgba(249,250,251,0.5);
+    font-size: 16px; font-family: inherit; color: var(--gray-900);
+    outline: none; transition: all 0.2s;
+  }
+  .input-field::placeholder { color: var(--gray-400); }
+  .input-field:focus { border-color: var(--brand-purple); box-shadow: 0 0 0 4px rgba(139,92,246,0.1); background: #fff; }
+
+  .value-prop {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .value-prop .icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .value-prop span { font-size: 13px; color: var(--gray-600); font-weight: 500; }
+
+  /* Chat styles */
+  .chat-wrapper {
+    display: flex; flex-direction: column; height: 100%;
+    background: var(--gradient-page);
+  }
+  .chat-header {
+    padding: 44px 16px 12px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .phase-indicator {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .phase-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .phase-dot.active { background: var(--brand-teal); }
+  .phase-dot.done { background: var(--emerald-500); }
+  .phase-dot.future { background: var(--gray-200); }
+  .phase-label {
+    font-size: 13px; font-weight: 600; color: var(--gray-700);
+    letter-spacing: 0.02em; text-transform: uppercase;
+  }
+  .turn-counter {
+    font-size: 12px; color: var(--gray-400); font-weight: 500;
+    margin-left: auto;
+  }
+
+  .chat-messages {
+    flex: 1; padding: 20px 16px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .msg { max-width: 82%; }
+  .msg.advisor { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg .sender {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--brand-purple); margin-bottom: 4px;
+  }
+  .msg.advisor .bubble {
+    font-size: 16px; line-height: 1.55; color: var(--gray-800);
+  }
+  .msg.user .bubble {
+    background: #fff; border-radius: 20px; padding: 14px 20px;
+    box-shadow: 0 2px 16px -4px rgba(0,0,0,0.1);
+    font-size: 16px; line-height: 1.5; color: var(--gray-800);
+  }
+
+  .chat-input {
+    padding: 12px 16px 28px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+  .chat-input-inner {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid var(--gray-200);
+    border-radius: 24px; padding: 4px 4px 4px 16px;
+  }
+  .chat-input-inner .placeholder {
+    flex: 1; font-size: 15px; color: var(--gray-400); padding: 8px 0;
+  }
+  .chat-input-inner .send-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--gradient-cta); border: none;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .chat-input-inner .send-btn svg { width: 18px; height: 18px; color: #fff; fill: #fff; }
+
+  /* Modal overlay */
+  .modal-overlay {
+    position: absolute; inset: 0; z-index: 20;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-card {
+    background: #fff; border-radius: 24px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    padding: 32px 24px; width: 100%; max-width: 360px;
+    text-align: center;
+  }
+
+  /* Insight toast */
+  .insight-toast {
+    position: absolute; top: 100px; left: 16px; right: 16px; z-index: 15;
+    background: linear-gradient(135deg, #fef3c7, #fffbeb);
+    border: 1px solid #fcd34d;
+    border-left: 4px solid #f59e0b;
+    border-radius: 12px; padding: 12px 16px;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
+  }
+  .insight-toast .toast-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #b45309; margin-bottom: 4px;
+  }
+  .insight-toast .toast-text {
+    font-size: 14px; color: #92400e; line-height: 1.4; font-weight: 500;
+  }
+
+  /* Email inline card */
+  .email-inline-card {
+    background: linear-gradient(135deg, rgba(20,184,166,0.06), #fff);
+    border: 1px solid rgba(20,184,166,0.2);
+    border-radius: 16px; padding: 20px;
+    margin: 4px 0;
+  }
+  .email-inline-card h4 {
+    font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px;
+  }
+  .email-inline-card p {
+    font-size: 13px; color: var(--gray-500); margin-bottom: 12px; line-height: 1.4;
+  }
+  .email-inline-card .inline-form {
+    display: flex; gap: 8px;
+  }
+  .email-inline-card .inline-form input {
+    flex: 1; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid rgba(20,184,166,0.3); font-size: 14px;
+    font-family: inherit; outline: none; background: #fff;
+  }
+  .email-inline-card .inline-form button {
+    padding: 10px 16px; border-radius: 12px;
+    background: var(--teal-600); color: #fff; border: none;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* Handoff card */
+  .handoff-card {
+    background: linear-gradient(135deg, rgba(20,184,166,0.06), #fff);
+    border: 1px solid rgba(20,184,166,0.2);
+    border-radius: 16px; padding: 20px; margin-top: 16px;
+    box-shadow: 0 2px 8px -2px rgba(0,0,0,0.05), 0 6px 20px -3px rgba(20,184,166,0.08);
+  }
+  .handoff-card .hc-header {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;
+  }
+  .handoff-card .hc-icon {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--teal-500), var(--emerald-600));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(20,184,166,0.2);
+  }
+  .handoff-card .hc-icon svg { width: 20px; height: 20px; color: #fff; }
+  .handoff-card h4 { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+  .handoff-card .hc-desc { font-size: 13px; color: var(--gray-500); margin-top: 2px; line-height: 1.4; }
+
+  /* Summary page */
+  .summary-constraint {
+    background: #fff; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border: 1px solid var(--gray-100);
+  }
+  .summary-constraint .sc-badge {
+    padding: 20px 24px; position: relative;
+  }
+  .summary-constraint .sc-badge .sc-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: rgba(255,255,255,0.85); margin-bottom: 4px;
+  }
+  .summary-constraint .sc-badge h2 {
+    font-size: 24px; font-weight: 700; color: #fff;
+  }
+  .summary-constraint .sc-body {
+    padding: 24px;
+    background: linear-gradient(to bottom, rgba(249,250,251,0.5), #fff);
+  }
+  .summary-constraint .sc-tagline {
+    font-size: 16px; font-weight: 600; margin-bottom: 8px;
+  }
+  .summary-constraint .sc-text {
+    font-size: 15px; line-height: 1.6; color: var(--gray-600);
+  }
+
+  .summary-card {
+    border-radius: 24px; padding: 28px; overflow: hidden;
+  }
+  .summary-card h3 {
+    font-size: 22px; font-weight: 700; color: var(--gray-900);
+    margin-bottom: 12px; letter-spacing: -0.02em; line-height: 1.2;
+  }
+  .summary-card > p {
+    font-size: 15px; color: var(--gray-600); line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  /* Email report mock */
+  .email-report {
+    background: #fff; min-height: 100%; padding: 0;
+  }
+  .email-report .er-header {
+    background: linear-gradient(135deg, var(--brand-teal), var(--brand-purple));
+    padding: 48px 24px 28px; text-align: center;
+  }
+  .email-report .er-header h1 {
+    font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px;
+  }
+  .email-report .er-header p { font-size: 14px; color: rgba(255,255,255,0.8); }
+  .email-report .er-body { padding: 24px; }
+  .er-section { margin-bottom: 24px; }
+  .er-section h3 {
+    font-size: 14px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--brand-purple); margin-bottom: 8px;
+  }
+  .er-section p { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .er-scores { display: flex; gap: 12px; margin: 12px 0; }
+  .er-score {
+    flex: 1; background: var(--gray-50); border-radius: 12px;
+    padding: 12px; text-align: center;
+  }
+  .er-score .score-val { font-size: 28px; font-weight: 700; }
+  .er-score .score-label { font-size: 11px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .er-steps { padding-left: 0; list-style: none; }
+  .er-steps li {
+    padding: 10px 0; border-bottom: 1px solid var(--gray-100);
+    font-size: 14px; color: var(--gray-700); line-height: 1.5;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .er-steps li .step-num {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    background: var(--brand-purple); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Sent badge */
+  .sent-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #d1fae5; color: #065f46;
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* Save progress icon */
+  .save-icon-circle {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--amber-500), var(--orange-600));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(245,158,11,0.25);
+  }
+
+  /* Utility */
+  .text-center { text-align: center; }
+  .flex-col-center {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100%;
+  }
+
+  /* Keyboard shortcut hint */
+  .kbd-hint {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(17,17,34,0.8); color: rgba(255,255,255,0.5);
+    padding: 8px 16px; border-radius: 8px; font-size: 12px;
+    backdrop-filter: blur(8px); z-index: 100;
+  }
+  .kbd-hint kbd {
+    background: rgba(255,255,255,0.1); padding: 2px 6px;
+    border-radius: 4px; font-family: inherit; font-weight: 600;
+    color: rgba(255,255,255,0.7);
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<div class="nav-bar">
+  <div class="nav-left">
+    <div class="nav-title">CoachMira Advisor</div>
+    <div class="nav-counter" id="navCounter">Screen 1 of 14</div>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="nav-right">
+    <div class="mode-toggle">
+      <button class="active" id="mobileBtn" onclick="setMode('mobile')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        Mobile
+      </button>
+      <button id="desktopBtn" onclick="setMode('desktop')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Desktop
+      </button>
+    </div>
+    <button class="nav-btn prev" id="prevBtn" onclick="navigate(-1)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg>
+      Prev
+    </button>
+    <button class="nav-btn next" id="nextBtn" onclick="navigate(1)">
+      Next
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14m0 0l-7-7m7 7l-7 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Screen description -->
+<div class="screen-meta" id="screenMeta">
+  <h2 id="screenTitle">Landing Page</h2>
+  <p id="screenDesc">First thing visitors see — headline, value props, and CTA</p>
+</div>
+
+<!-- Phone frame -->
+<div class="phone-wrapper">
+  <div class="phone-frame">
+    <div class="notch"></div>
+    <div class="phone-screen" id="phoneScreen">
+
+      <!-- ==================== SCREEN 1: Landing Page ==================== -->
+      <div class="screen active" data-title="Landing Page" data-desc="First thing visitors see — headline, value props, and primary CTA">
+        <div class="page-bg flex-col-center" style="padding: 60px 24px 32px;">
+          <div class="badge" style="margin-bottom: 32px;">Free &bull; 15–30 minutes</div>
+          <h1 style="font-size: 30px; font-weight: 700; color: var(--gray-900); text-align: center; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 16px;">
+            Discover What's <em style="font-style: italic;">Really</em><br>Holding Your Business Back
+          </h1>
+          <p style="font-size: 16px; color: var(--gray-600); text-align: center; line-height: 1.6; margin-bottom: 36px; max-width: 320px;">
+            It's usually not what you think. Through a guided conversation, you'll discover the <em>one</em> constraint blocking your growth.
+          </p>
+          <div style="display: flex; gap: 32px; margin-bottom: 36px;">
+            <div class="value-prop">
+              <div class="icon" style="background: rgba(20,184,166,0.1);">🔍</div>
+              <span>Guided discovery</span>
+            </div>
+            <div class="value-prop">
+              <div class="icon" style="background: rgba(139,92,246,0.1);">💡</div>
+              <span>Build real clarity</span>
+            </div>
+            <div class="value-prop">
+              <div class="icon" style="background: rgba(99,102,241,0.1);">🎯</div>
+              <span>Know your next step</span>
+            </div>
+          </div>
+          <button class="btn-cta">Find My Next Step</button>
+          <div style="margin-top: auto; padding-top: 40px; text-align: center;">
+            <p style="font-size: 13px; color: var(--gray-400); margin-bottom: 6px;">Your responses are private and never shared.</p>
+            <p style="font-size: 12px; color: var(--gray-400);">Powered by Mirasee &nbsp;|&nbsp; Privacy Policy &nbsp;|&nbsp; Terms</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 2: Name Collection ==================== -->
+      <div class="screen" data-title="Name Collection" data-desc="Simple form to personalize the experience before starting">
+        <div class="page-bg flex-col-center" style="padding: 60px 24px 32px;">
+          <div class="badge" style="margin-bottom: 32px;">Free &bull; Single session</div>
+          <h1 style="font-size: 28px; font-weight: 700; color: var(--gray-900); text-align: center; line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.02em;">
+            Hi, I'm Mira—your strategic advisor
+          </h1>
+          <p style="font-size: 16px; color: var(--gray-600); text-align: center; line-height: 1.6; margin-bottom: 32px; max-width: 320px;">
+            I help coaches identify what's really holding them back. Before we begin, what should I call you?
+          </p>
+          <div style="width: 100%; max-width: 320px;">
+            <input class="input-field" type="text" placeholder="First Name" value="Sarah" style="margin-bottom: 20px;">
+            <button class="btn-cta" style="width: 100%;">Start Assessment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 3: Chat Opening ==================== -->
+      <div class="screen" data-title="Chat — Opening Greeting" data-desc="Mira greets the user by name and asks the first question">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot active"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <span class="phase-label">Exploring</span>
+              <span class="turn-counter">Turn 1</span>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Hey Sarah! I'm here to help you identify what's really holding your business back. Let's start: Tell me about your coaching or consulting business—what do you do and who do you serve?</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <div class="placeholder">Type your message...</div>
+              <div class="send-btn">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 4: Chat Mid Conversation ==================== -->
+      <div class="screen" data-title="Chat — Context Gathering" data-desc="User describes their business, Mira asks probing follow-up questions">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot active"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <span class="phase-label">Exploring</span>
+              <span class="turn-counter">Turn 5</span>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Hey Sarah! Tell me about your coaching business—what do you do and who do you serve?</div>
+            </div>
+            <div class="msg user">
+              <div class="bubble">I'm a health and wellness coach. I work mostly with women in their 40s-50s who want to lose weight and get more energy. I've been doing this for about 3 years.</div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Three years in — you've got real experience. What does your client work look like right now? One-on-one, group, a mix?</div>
+            </div>
+            <div class="msg user">
+              <div class="bubble">Mostly one-on-one. I have about 8 clients right now at $500/month each. I tried a group program last year but only got 3 people to sign up so I went back to 1:1.</div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">That's interesting — the group program not filling up despite 3 years of experience. When you think about growing past where you are now, what feels like the biggest obstacle?</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <div class="placeholder">Type your message...</div>
+              <div class="send-btn">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 5: Exploration with Insight ==================== -->
+      <div class="screen" data-title="Chat — Exploration Phase" data-desc="Mira connects dots and surfaces deeper patterns. An insight toast appears when something significant is uncovered.">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot done"></div>
+              <div class="phase-dot active"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <span class="phase-label">Discovering</span>
+              <span class="turn-counter">Turn 11</span>
+            </div>
+          </div>
+          <!-- Insight toast -->
+          <div class="insight-toast">
+            <div class="toast-label">💡 Insight Captured</div>
+            <div class="toast-text">The real bottleneck isn't marketing — it's that Sarah's delivery model requires her personally for every client interaction.</div>
+          </div>
+          <div class="chat-messages" style="padding-top: 80px;">
+            <div class="msg user">
+              <div class="bubble">I've tried hiring a VA and even another coach to help, but it never works out. They just don't do it the way I do. My clients expect ME specifically.</div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Here's what I'm noticing, Sarah — you've built something that works really well, but the way it's built means it can only work <em>through</em> you. That's the catch-22. The thing that makes your clients love working with you is the same thing that prevents you from growing. When you tried delegating, what specifically went wrong?</div>
+            </div>
+            <div class="msg user">
+              <div class="bubble">Honestly I think the issue is I don't have any documented processes. It's all in my head. When I hand things off, people don't know what to do because I've never written it down. I just... do it.</div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble" style="border-left: 4px solid #f59e0b; padding-left: 16px;">That's a really important realization. You're not failing at delegation — you're trying to delegate something that doesn't exist yet in a transferable form. The expertise is real, but it's locked inside your head. Has anyone ever helped you extract and document what you actually do with clients?</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <div class="placeholder">Type your message...</div>
+              <div class="send-btn">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 6: Contextual Email Capture ==================== -->
+      <div class="screen" data-title="Chat — Contextual Email Capture" data-desc="Mira naturally weaves in an email capture card mid-conversation — no modal interruption, feels like part of the flow">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot done"></div>
+              <div class="phase-dot active"></div>
+              <div class="phase-dot future"></div>
+              <div class="phase-dot future"></div>
+              <span class="phase-label">Discovering</span>
+              <span class="turn-counter">Turn 14</span>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="msg user"><div class="bubble" style="background: var(--brand-teal); color: #fff;">I've tried hiring VAs twice but they never stick around because there's no documentation for how I actually do things.</div></div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">That's a really telling pattern, Sarah. The knowledge is locked in your head, and without it externalized, nobody else can replicate what you do. We're getting somewhere important — let me make sure you don't lose this.</div>
+            </div>
+            <div class="email-inline-card" style="max-width: 82%;">
+              <h4>📧 Save your progress</h4>
+              <p>Enter your email so you can pick up where you left off anytime.</p>
+              <div class="inline-form">
+                <input type="email" placeholder="your@email.com">
+                <button>Save</button>
+              </div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Now let's keep going — you mentioned your clients expect you specifically. What would happen if you told a client that someone else would be handling part of their program?</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <div class="placeholder">Type your message...</div>
+              <div class="send-btn"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 7: Diagnosis Moment ==================== -->
+      <div class="screen" data-title="Chat — Diagnosis Moment" data-desc="Mira shares the constraint diagnosis after getting consent — the 'aha' moment of the conversation">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot done"></div>
+              <div class="phase-dot done"></div>
+              <div class="phase-dot active"></div>
+              <div class="phase-dot future"></div>
+              <span class="phase-label">Testing</span>
+              <span class="turn-counter">Turn 19</span>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">Sarah, I think I can see what's going on here. Can I share what I'm seeing?</div>
+            </div>
+            <div class="msg user">
+              <div class="bubble">Yes, please — I'd love to hear your perspective.</div>
+            </div>
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">
+                <strong>Your core constraint is execution.</strong> You have a clear offer, you know your audience, and your clients get great results. The problem isn't strategy or mindset — it's that everything runs through you personally.<br><br>
+                You don't have documented processes, which means you can't delegate. You can't delegate, which means you can't scale. And you can't scale, which means you're capped at the number of hours in your day.<br><br>
+                The group program didn't fail because of bad marketing — it failed because you tried to scale without first building the systems that would let someone else deliver your methodology. Does that resonate?
+              </div>
+            </div>
+            <div class="msg user">
+              <div class="bubble">Wow. Yes, that actually makes a lot of sense. I've been blaming my marketing this whole time but the real issue is that I've never built anything that works without me.</div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <div class="placeholder">Type your message...</div>
+              <div class="send-btn"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 8: Conversation Complete ==================== -->
+      <div class="screen" data-title="Chat — Conversation Complete" data-desc="Final message with handoff card — user enters email to see their summary and book a call">
+        <div class="chat-wrapper">
+          <div class="chat-header">
+            <div class="phase-indicator">
+              <div class="phase-dot done"></div>
+              <div class="phase-dot done"></div>
+              <div class="phase-dot done"></div>
+              <div class="phase-dot active" style="background: var(--emerald-500);"></div>
+              <span class="phase-label" style="color: var(--emerald-600);">Ready</span>
+              <span class="turn-counter">Turn 24</span>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="msg advisor">
+              <div class="sender">Mira</div>
+              <div class="bubble">
+                Sarah, you came in thinking the problem was marketing, and you're leaving with a much clearer picture: the constraint is execution. You need systems and processes that let your methodology work without you being in every session.<br><br>
+                That's not a small thing — it's actually great news, because it means the hard part (building something people want) is already done. Now it's about building the infrastructure to deliver it at scale.
+              </div>
+            </div>
+            <div style="max-width: 82%;">
+              <div class="handoff-card">
+                <div class="hc-header">
+                  <div class="hc-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <div>
+                    <h4>Your Personalized Summary Is Ready</h4>
+                    <div class="hc-desc">Enter your email to get your full summary with key insights, recommended next steps, and a link to book your free consultation.</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <input class="input-field" type="email" placeholder="your@email.com" style="padding: 12px 14px; border-radius: 12px; font-size: 15px; border-color: rgba(20,184,166,0.3);">
+                  <button style="padding: 12px 18px; border-radius: 12px; background: var(--teal-600); color: #fff; border: none; font-size: 15px; font-weight: 600; font-family: inherit; white-space: nowrap; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    See My Summary
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                  </button>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--gray-400);">Skip — view summary without email</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <div class="chat-input-inner" style="opacity: 0.5;">
+              <div class="placeholder">Conversation complete</div>
+              <div class="send-btn" style="opacity: 0.4;">
+                <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 9: Summary — Constraint Card ==================== -->
+      <div class="screen" data-title="Summary — Constraint Card" data-desc="Above the fold: personalized greeting and the primary constraint diagnosis card">
+        <div class="page-bg" style="min-height: 100%;">
+          <div style="background: linear-gradient(to bottom, rgba(245,158,11,0.08) 0%, transparent 100%); padding: 52px 20px 24px;">
+            <p style="text-align: center; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 8px;">Your Assessment Results</p>
+            <h1 style="text-align: center; font-size: 26px; font-weight: 700; color: var(--gray-900); margin-bottom: 24px; letter-spacing: -0.02em;">Sarah, here's what's holding you back</h1>
+            <div class="summary-constraint">
+              <div class="sc-badge" style="background: linear-gradient(135deg, var(--amber-500), var(--orange-600));">
+                <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);"></div>
+                <div class="sc-label" style="position: relative;">Your Primary Constraint</div>
+                <h2 style="position: relative;">Execution Constraint</h2>
+              </div>
+              <div class="sc-body">
+                <div class="sc-tagline" style="color: #d97706;">You know what to do, but can't get it done at scale</div>
+                <div class="sc-text">Your coaching methodology gets great results, but everything runs through you personally. Without documented processes and systems, you can't delegate or scale — which means your income is capped by your available hours.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 10: Summary — CTA ==================== -->
+      <div class="screen" data-title="Summary — Booking CTA" data-desc="Below the constraint card: clear call-to-action to book a free implementation call">
+        <div class="page-bg" style="min-height: 100%; padding: 52px 20px 24px;">
+          <div class="summary-constraint" style="margin-bottom: 24px;">
+            <div class="sc-badge" style="background: linear-gradient(135deg, var(--amber-500), var(--orange-600)); padding: 16px 20px;">
+              <div class="sc-label" style="position: relative;">Your Primary Constraint</div>
+              <h2 style="position: relative; font-size: 20px;">Execution Constraint</h2>
+            </div>
+          </div>
+          <div class="summary-card" style="background: linear-gradient(135deg, rgba(20,184,166,0.05), #fff); border: 1px solid rgba(20,184,166,0.15);">
+            <h3>Ready to Get It Built?</h3>
+            <p>Talk to our implementation team about building the systems you need.</p>
+            <button class="btn-violet">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              Book Your Implementation Call
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="opacity: 0.6;"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
+            <p style="text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 16px; margin-bottom: 0;">Free 30-minute call &bull; No obligation</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 11: Summary — Email Summary ==================== -->
+      <div class="screen" data-title="Summary — Email Collection" data-desc="Below the CTA: offer to email a detailed personalized report with insights and next steps">
+        <div class="page-bg" style="min-height: 100%; padding: 52px 20px 24px;">
+          <div class="summary-card" style="background: linear-gradient(135deg, rgba(20,184,166,0.05), #fff); border: 1px solid rgba(20,184,166,0.15); margin-bottom: 24px; padding: 20px;">
+            <h3 style="font-size: 18px;">Ready to Get It Built?</h3>
+            <button class="btn-violet" style="font-size: 15px; padding: 14px 20px;">
+              Book Your Implementation Call
+            </button>
+          </div>
+          <div class="summary-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.05), #fff); border: 1px solid rgba(139,92,246,0.12);">
+            <h3>Get Your Personalized Summary</h3>
+            <p>I'll send you a detailed summary of what we discovered, your readiness scores, and personalized next steps to move forward.</p>
+            <div style="margin-bottom: 16px;">
+              <input class="input-field" type="email" placeholder="your@email.com" style="margin-bottom: 12px;">
+              <button class="btn-teal">
+                Send My Summary
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="opacity: 0.6;"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+              </button>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: var(--gray-400); display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2" stroke-linecap="round"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              Your email is safe. We respect your privacy.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 12: Summary — Email Sent ==================== -->
+      <div class="screen" data-title="Summary — Email Sent" data-desc="Confirmation state after email is submitted — green 'Sent' badge and confirmation text">
+        <div class="page-bg" style="min-height: 100%; padding: 52px 20px 24px;">
+          <div class="summary-card" style="background: linear-gradient(135deg, rgba(20,184,166,0.05), #fff); border: 1px solid rgba(20,184,166,0.15); margin-bottom: 24px; padding: 20px;">
+            <h3 style="font-size: 18px;">Ready to Get It Built?</h3>
+            <button class="btn-violet" style="font-size: 15px; padding: 14px 20px;">
+              Book Your Implementation Call
+            </button>
+          </div>
+          <div class="summary-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.05), #fff); border: 1px solid rgba(16,185,129,0.2);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px;">
+              <h3 style="margin-bottom: 0;">Get Your Personalized Summary</h3>
+              <div class="sent-badge">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="#065f46"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Sent
+              </div>
+            </div>
+            <p style="font-size: 15px; color: var(--gray-600); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; margin-bottom: 0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-500)" stroke-width="2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Results sent to <strong style="color: var(--gray-900);">sarah@example.com</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCREEN 13: Email Report ==================== -->
+      <div class="screen" data-title="Email — Personalized Summary Report" data-desc="The actual email users receive: full analysis, readiness scores, next steps, and booking CTA">
+        <div class="email-report">
+          <div class="er-header">
+            <p style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.7); margin-bottom: 4px;">CoachMira Advisor</p>
+            <h1>Your Assessment Summary</h1>
+            <p>Prepared for Sarah</p>
+          </div>
+          <div class="er-body">
+            <div class="er-section">
+              <h3>🎯 Your Primary Constraint</h3>
+              <div style="background: linear-gradient(135deg, var(--amber-500), var(--orange-600)); color: #fff; padding: 16px 20px; border-radius: 14px; margin-bottom: 12px;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; margin-bottom: 2px;">Execution Constraint</div>
+                <div style="font-size: 16px; font-weight: 600;">You know what to do, but can't get it done at scale</div>
+              </div>
+              <p>Your coaching methodology gets great results, but everything runs through you personally. Without documented processes and systems, you can't delegate or scale — which means your income is capped by your available hours.</p>
+            </div>
+
+            <div class="er-section">
+              <h3>📊 Readiness Scores</h3>
+              <div class="er-scores">
+                <div class="er-score">
+                  <div class="score-val" style="color: var(--emerald-500);">9</div>
+                  <div class="score-label">Clarity</div>
+                </div>
+                <div class="er-score">
+                  <div class="score-val" style="color: var(--amber-500);">6</div>
+                  <div class="score-label">Confidence</div>
+                </div>
+                <div class="er-score">
+                  <div class="score-val" style="color: var(--brand-purple);">6</div>
+                  <div class="score-label">Capacity</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="er-section">
+              <h3>📋 Recommended Next Steps</h3>
+              <ul class="er-steps">
+                <li>
+                  <div class="step-num">1</div>
+                  <div>Document your top 3 client processes — the ones you do every week. Get them out of your head and into a format someone else could follow.</div>
+                </li>
+                <li>
+                  <div class="step-num">2</div>
+                  <div>Identify which parts of client delivery actually need you vs. which parts feel like they need you but don't.</div>
+                </li>
+                <li>
+                  <div class="step-num">3</div>
+                  <div>Talk to an implementation specialist about building systems that let your methodology scale beyond your personal capacity.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="er-section" style="margin-bottom: 0;">
+              <button class="btn-violet" style="margin-bottom: 8px;">
+                Book Your Free Implementation Call
+              </button>
+              <p style="text-align: center; font-size: 12px; color: var(--gray-400);">30 minutes &bull; No obligation</p>
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--gray-100); text-align: center;">
+              <p style="font-size: 12px; color: var(--gray-400); line-height: 1.5;">
+                This assessment was generated by CoachMira Advisor<br>
+                Powered by Mirasee &bull; <span style="text-decoration: underline;">Unsubscribe</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /phone-screen -->
+  </div><!-- /phone-frame -->
+  <div class="desktop-frame" style="display:none;">
+    <div class="browser-chrome">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">advisor.coachmira.ai</div>
+    </div>
+    <!-- phoneScreen gets moved here in desktop mode -->
+  </div>
+</div><!-- /phone-wrapper -->
+
+<!-- Keyboard hint -->
+<div class="kbd-hint">
+  <kbd>←</kbd> <kbd>→</kbd> to navigate &nbsp;&bull;&nbsp; Click dots to jump
+</div>
+
+<script>
+  const screens = document.querySelectorAll('.screen');
+  const dotsContainer = document.getElementById('dots');
+  const navCounter = document.getElementById('navCounter');
+  const screenTitle = document.getElementById('screenTitle');
+  const screenDesc = document.getElementById('screenDesc');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const phoneScreen = document.getElementById('phoneScreen');
+  let current = 0;
+
+  // Build dots
+  screens.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dotsContainer.appendChild(dot);
+  });
+
+  function goTo(index) {
+    if (index < 0 || index >= screens.length) return;
+    screens[current].classList.remove('active');
+    dotsContainer.children[current].classList.remove('active');
+    current = index;
+    screens[current].classList.add('active');
+    dotsContainer.children[current].classList.add('active');
+    phoneScreen.scrollTop = 0;
+    updateUI();
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  function updateUI() {
+    navCounter.textContent = `Screen ${current + 1} of ${screens.length}`;
+    screenTitle.textContent = screens[current].dataset.title;
+    screenDesc.textContent = screens[current].dataset.desc;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === screens.length - 1;
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+  });
+
+  // Desktop/Mobile mode toggle
+  function setMode(mode) {
+    const phoneFrame = document.querySelector('.phone-frame');
+    const desktopFrame = document.querySelector('.desktop-frame');
+    const mobileBtn = document.getElementById('mobileBtn');
+    const desktopBtn = document.getElementById('desktopBtn');
+    const screen = document.getElementById('phoneScreen');
+
+    if (mode === 'desktop') {
+      document.body.classList.add('desktop-mode');
+      phoneFrame.style.display = 'none';
+      desktopFrame.style.display = 'block';
+      desktopFrame.appendChild(screen);
+      screen.classList.add('desktop-screen');
+      mobileBtn.classList.remove('active');
+      desktopBtn.classList.add('active');
+    } else {
+      document.body.classList.remove('desktop-mode');
+      desktopFrame.style.display = 'none';
+      phoneFrame.style.display = '';
+      phoneFrame.appendChild(screen);
+      screen.classList.remove('desktop-screen');
+      mobileBtn.classList.add('active');
+      desktopBtn.classList.remove('active');
+    }
+    screen.scrollTop = 0;
+  }
+
+  updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Mira Works — Under the Hood</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #14B8A6;
+    --teal-dim: #0d9488;
+    --teal-glow: rgba(20, 184, 166, 0.25);
+    --violet: #8B5CF6;
+    --violet-dim: #7c3aed;
+    --violet-glow: rgba(139, 92, 246, 0.2);
+    --peach: #FEE4D9;
+    --peach-warm: #FBBF9A;
+    --bg-deep: #060a14;
+    --bg-card: rgba(12, 17, 30, 0.85);
+    --bg-card-border: rgba(255,255,255,0.06);
+    --text-primary: #edf0f7;
+    --text-secondary: rgba(237, 240, 247, 0.65);
+    --text-dim: rgba(237, 240, 247, 0.38);
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    background-size: 256px;
+    opacity: 0.4;
+  }
+
+  /* Ambient glow orbs */
+  .ambient-orb {
+    position: fixed; border-radius: 50%; pointer-events: none; filter: blur(120px); z-index: 0;
+  }
+  .ambient-orb.teal { width: 600px; height: 600px; background: var(--teal); opacity: 0.04; top: 10%; left: -10%; }
+  .ambient-orb.violet { width: 500px; height: 500px; background: var(--violet); opacity: 0.05; top: 40%; right: -8%; }
+  .ambient-orb.peach { width: 400px; height: 400px; background: var(--peach-warm); opacity: 0.03; bottom: 15%; left: 20%; }
+
+  /* Scroll animation */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 32px;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(20, 184, 166, 0.08);
+    border: 1px solid rgba(20, 184, 166, 0.2);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    animation: fadeIn 1s 0.2s both;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--teal); }
+    50% { opacity: 0.5; box-shadow: 0 0 16px var(--teal); }
+  }
+
+  .hero h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 28px;
+    animation: fadeIn 1s 0.4s both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--violet) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(18px, 2.2vw, 22px);
+    font-weight: 300;
+    color: var(--text-secondary);
+    max-width: 640px;
+    line-height: 1.7;
+    animation: fadeIn 1s 0.6s both;
+  }
+
+  .hero-scroll-cue {
+    position: absolute;
+    bottom: 40px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: fadeIn 1s 1.2s both;
+  }
+  .hero-scroll-cue .chevron {
+    width: 20px; height: 20px;
+    border-right: 1.5px solid var(--text-dim);
+    border-bottom: 1.5px solid var(--text-dim);
+    transform: rotate(45deg);
+    animation: bob 2s infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(6px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ COMPARISON ============ */
+  .comparison {
+    margin-bottom: 140px;
+  }
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+  @media (max-width: 768px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+  }
+  .comp-card {
+    border-radius: 20px;
+    padding: 40px 36px;
+    position: relative;
+  }
+  .comp-card.chatgpt {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .comp-card.mira {
+    background: linear-gradient(145deg, rgba(20,184,166,0.06) 0%, rgba(139,92,246,0.06) 100%);
+    border: 1px solid rgba(20,184,166,0.2);
+  }
+  .comp-card .comp-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  .comp-card.chatgpt .comp-label { color: var(--text-dim); }
+  .comp-card.mira .comp-label { color: var(--teal); }
+  .comp-card .comp-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .comp-card.chatgpt .comp-title { color: var(--text-secondary); }
+  .comp-items {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .comp-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .comp-card.mira .comp-item { color: var(--text-primary); }
+  .comp-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .comp-card.chatgpt .comp-icon {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .comp-card.mira .comp-icon {
+    background: rgba(20,184,166,0.15);
+    color: var(--teal);
+    border: 1px solid rgba(20,184,166,0.2);
+  }
+  .comp-summary {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    font-size: 15px;
+    font-style: italic;
+    line-height: 1.7;
+  }
+  .comp-card.chatgpt .comp-summary { color: var(--text-dim); }
+  .comp-card.mira .comp-summary { color: var(--text-secondary); }
+
+  /* ============ MAIN CONTENT ============ */
+  .content {
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px 120px;
+    z-index: 1;
+  }
+
+  /* ============ SECTION ============ */
+  .section {
+    margin-bottom: 140px;
+  }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+  .section-label .line {
+    width: 40px; height: 1px; background: var(--teal); opacity: 0.5;
+  }
+
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(34px, 4.5vw, 52px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .section-desc {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    max-width: 640px;
+    line-height: 1.75;
+    margin-bottom: 52px;
+  }
+
+  /* ============ PIPELINE STEPS ============ */
+  .pipeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 32px;
+    bottom: 32px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--teal), var(--violet), var(--teal));
+    opacity: 0.25;
+  }
+
+  .pipeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    padding: 24px 0;
+    position: relative;
+  }
+
+  .step-node {
+    width: 56px; height: 56px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    position: relative;
+    z-index: 2;
+  }
+  .step-node.teal {
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    color: var(--teal);
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.1);
+  }
+  .step-node.violet {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: var(--violet);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+  }
+  .step-node.peach {
+    background: rgba(251, 191, 154, 0.1);
+    border: 1px solid rgba(251, 191, 154, 0.3);
+    color: var(--peach-warm);
+    box-shadow: 0 0 20px rgba(251, 191, 154, 0.1);
+  }
+
+  .step-content {
+    flex: 1;
+    padding-top: 4px;
+  }
+
+  .step-name {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .step-detail {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .step-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 14px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+  }
+  .tag.teal { background: rgba(20,184,166,0.1); color: var(--teal); border: 1px solid rgba(20,184,166,0.15); }
+  .tag.violet { background: rgba(139,92,246,0.1); color: var(--violet); border: 1px solid rgba(139,92,246,0.15); }
+  .tag.peach { background: rgba(251,191,154,0.1); color: var(--peach-warm); border: 1px solid rgba(251,191,154,0.15); }
+  .tag.dim { background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.06); }
+
+  /* ============ CARD GRID ============ */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 20px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .card-icon.teal { background: rgba(20,184,166,0.12); }
+  .card-icon.violet { background: rgba(139,92,246,0.12); }
+  .card-icon.peach { background: rgba(251,191,154,0.12); }
+
+  .card-icon svg { width: 24px; height: 24px; }
+
+  .card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .card p {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .card .card-detail {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .card .card-detail li {
+    font-size: 14px;
+    color: var(--text-secondary);
+    list-style: none;
+    padding: 5px 0;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.55;
+  }
+  .card .card-detail li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--teal);
+    opacity: 0.5;
+  }
+
+  /* ============ RELATIONSHIP TRACK ============ */
+  .rel-tracks {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .rel-track {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+
+  .rel-track-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .rel-track-label.teal { color: var(--teal); }
+  .rel-track-label.violet { color: var(--violet); }
+  .rel-track-label.peach { color: var(--peach-warm); }
+
+  .rel-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .rel-node {
+    padding: 7px 18px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .rel-node.teal { background: rgba(20,184,166,0.1); color: var(--teal); border: 1px solid rgba(20,184,166,0.2); }
+  .rel-node.violet { background: rgba(139,92,246,0.1); color: var(--violet); border: 1px solid rgba(139,92,246,0.2); }
+  .rel-node.peach { background: rgba(251,191,154,0.1); color: var(--peach-warm); border: 1px solid rgba(251,191,154,0.2); }
+  .rel-node.danger { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .rel-node.dim { background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.06); }
+
+  .rel-arrow {
+    color: var(--text-dim);
+    font-size: 16px;
+    padding: 0 10px;
+    user-select: none;
+  }
+
+  .rel-desc {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-top: 14px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* ============ OVERLAY VIZ ============ */
+  .overlay-viz {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .overlay-row {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .overlay-category {
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+    letter-spacing: 0.02em;
+    border-right: 2px solid;
+  }
+  .overlay-category.teal { color: var(--teal); border-color: var(--teal); }
+  .overlay-category.violet { color: var(--violet); border-color: var(--violet); }
+  .overlay-category.peach { color: var(--peach-warm); border-color: var(--peach-warm); }
+  .overlay-category.dim { color: var(--text-secondary); border-color: rgba(255,255,255,0.15); }
+
+  .overlay-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+  }
+
+  .overlay-chip {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }
+  .overlay-chip:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-primary);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  /* ============ QUOTE BLOCK ============ */
+  .quote-block {
+    position: relative;
+    padding: 44px 52px;
+    margin: 52px 0;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 20px;
+    border-left: 3px solid var(--violet);
+  }
+  .quote-block::before {
+    content: '\201C';
+    position: absolute;
+    top: 16px; left: 20px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 60px;
+    color: var(--violet);
+    opacity: 0.3;
+    line-height: 1;
+  }
+  .quote-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+  .quote-attr {
+    font-size: 15px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  /* ============ METHODOLOGY ============ */
+  .method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .method-item {
+    padding: 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 16px;
+    transition: border-color 0.3s;
+  }
+  .method-item:hover { border-color: rgba(255,255,255,0.1); }
+
+  .method-name {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .method-name .icon {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .method-name .icon.teal { background: var(--teal); box-shadow: 0 0 8px var(--teal-glow); }
+  .method-name .icon.violet { background: var(--violet); box-shadow: 0 0 8px var(--violet-glow); }
+  .method-name .icon.peach { background: var(--peach-warm); box-shadow: 0 0 8px rgba(251,191,154,0.3); }
+
+  .method-desc {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ============ CONSTRAINT CARDS ============ */
+  .constraint-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 768px) {
+    .constraint-cards { grid-template-columns: 1fr; }
+    .overlay-row { flex-direction: column; }
+    .overlay-category { width: auto; text-align: left; border-right: none; border-bottom: 2px solid; padding: 0 0 8px; justify-content: flex-start; }
+  }
+
+  .constraint-card {
+    border-radius: 20px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+  }
+  .constraint-card.strategy {
+    background: linear-gradient(145deg, rgba(139,92,246,0.08) 0%, rgba(12,17,30,0.9) 100%);
+    border-color: rgba(139,92,246,0.2);
+  }
+  .constraint-card.execution {
+    background: linear-gradient(145deg, rgba(20,184,166,0.08) 0%, rgba(12,17,30,0.9) 100%);
+    border-color: rgba(20,184,166,0.2);
+  }
+  .constraint-card.psychology {
+    background: linear-gradient(145deg, rgba(251,191,154,0.08) 0%, rgba(12,17,30,0.9) 100%);
+    border-color: rgba(251,191,154,0.2);
+  }
+
+  .constraint-card .c-percent {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .constraint-card.strategy .c-percent { color: var(--violet); }
+  .constraint-card.execution .c-percent { color: var(--teal); }
+  .constraint-card.psychology .c-percent { color: var(--peach-warm); }
+
+  .constraint-card .c-range {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+
+  .constraint-card .c-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .constraint-card .c-desc {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+
+  .constraint-card .c-program {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .constraint-card.strategy .c-program { background: rgba(139,92,246,0.15); color: var(--violet); }
+  .constraint-card.execution .c-program { background: rgba(20,184,166,0.15); color: var(--teal); }
+  .constraint-card.psychology .c-program { background: rgba(251,191,154,0.15); color: var(--peach-warm); }
+
+  .constraint-card .c-signals {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .constraint-card .c-signals .sig {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 3px 0;
+  }
+
+  /* Cross-map section */
+  .cross-map {
+    margin-top: 36px;
+    padding: 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 16px;
+    text-align: center;
+  }
+  .cross-map h4 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+  }
+  .cross-map p {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 600px;
+    margin: 0 auto 20px;
+  }
+  .cross-map-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+  .cross-map-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .cross-map-item .arrow-icon {
+    color: var(--text-dim);
+    font-size: 16px;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    text-align: center;
+    padding: 80px 24px 40px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .footer-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .footer-logo em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--teal), var(--violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .footer-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* ============ DIVIDER ============ */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
+    margin: 100px 0;
+  }
+
+  /* ============ PROMPT ASSEMBLY DIAGRAM ============ */
+  .assembly-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 44px 0;
+  }
+
+  .assembly-layer {
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+  }
+  .assembly-layer.base {
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.25);
+    color: var(--violet);
+  }
+  .assembly-layer.overlay {
+    background: rgba(20,184,166,0.08);
+    border: 1px solid rgba(20,184,166,0.2);
+    color: var(--teal);
+  }
+  .assembly-layer.context {
+    background: rgba(251,191,154,0.08);
+    border: 1px solid rgba(251,191,154,0.2);
+    color: var(--peach-warm);
+  }
+
+  .assembly-connector {
+    width: 2px;
+    height: 20px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .assembly-result {
+    margin-top: 8px;
+    padding: 18px 32px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(20,184,166,0.1) 0%, rgba(139,92,246,0.1) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    max-width: 520px;
+    width: 100%;
+  }
+
+  /* Voice card */
+  .voice-card {
+    margin-top: 44px;
+    padding: 32px 36px;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 16px;
+  }
+  .voice-card h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .voice-principles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .voice-principle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .voice-principle .check {
+    color: var(--teal);
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient-orb teal"></div>
+<div class="ambient-orb violet"></div>
+<div class="ambient-orb peach"></div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span> How It Works</div>
+  <h1>Inside <em>Mira</em></h1>
+  <p class="hero-sub">
+    A smart diagnostic conversation built on Danny's coaching methodology — with memory, relationship awareness, and adaptive responses.
+  </p>
+  <div class="hero-scroll-cue">
+    <span>Scroll to explore</span>
+    <div class="chevron"></div>
+  </div>
+</section>
+
+<!-- ===================== CONTENT ===================== -->
+<div class="content">
+
+  <!-- ================ SECTION 0: WHY NOT JUST CHATGPT ================ -->
+  <section class="comparison reveal">
+    <div class="section-label"><span class="line"></span> The Key Difference</div>
+    <h2 class="section-title">Why Not Just Ask ChatGPT?</h2>
+    <p class="section-desc">
+      You could tell ChatGPT "be a business coach." It would happily do it. Here's why Mira is fundamentally different.
+    </p>
+
+    <div class="comparison-grid">
+      <div class="comp-card chatgpt reveal">
+        <div class="comp-label">Generic AI Chat</div>
+        <div class="comp-title">Answers whatever you ask</div>
+        <div class="comp-items">
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>Gets one static prompt at the start and uses it for the whole conversation</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>Gives advice immediately — "Here are 5 things you should try"</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>No memory of what's been explored — will happily go in circles</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>Treats everyone the same way regardless of personality or emotional state</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>User drives the conversation — they need to know what questions to ask</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>No quality control — can contradict itself, jump to conclusions, or push solutions prematurely</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">—</div>
+            <div>Generic coaching advice that could apply to anyone</div>
+          </div>
+        </div>
+        <div class="comp-summary">The person leaves with a list of ideas but no clarity about which one actually matters for them.</div>
+      </div>
+
+      <div class="comp-card mira reveal">
+        <div class="comp-label">Mira</div>
+        <div class="comp-title">Guides you to what you're not seeing</div>
+        <div class="comp-items">
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Rebuilds her instructions every single turn — 48 building blocks assembled based on what's happening right now</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Withholds the diagnosis until the person is ready to hear it — asks permission first</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Tracks every topic covered and knows when to stop exploring and start converging</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Reads the room — adapts tone, pace, and depth based on trust, engagement, personality type, and frustration level</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Mira leads — she knows what to ask next, when to push, and when to give space</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Every response is checked before sending — no accidental sales pitches during exploration, no premature conclusions</div>
+          </div>
+          <div class="comp-item">
+            <div class="comp-icon">&#10003;</div>
+            <div>Built on Danny's diagnostic framework — finds the ONE constraint that matters, not a laundry list</div>
+          </div>
+        </div>
+        <div class="comp-summary">The person leaves knowing exactly what's holding them back — and whether they need help fixing it.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 1: PIPELINE ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 01</div>
+    <h2 class="section-title">What Happens When Someone Sends a Message</h2>
+    <p class="section-desc">
+      Every message goes through 7 steps. There are no scripts — each response is built fresh based on what Mira understands about this person right now.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipeline-step reveal">
+        <div class="step-node teal">1</div>
+        <div class="step-content">
+          <div class="step-name">Message Arrives</div>
+          <div class="step-detail">The person types or speaks. Voice input gets cleaned up automatically before anything else happens.</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node teal">2</div>
+        <div class="step-content">
+          <div class="step-name">Read Between the Lines</div>
+          <div class="step-detail">One AI call analyzes everything at once — not just what they said, but what they meant, how they're feeling, and whether their story is shifting.</div>
+          <div class="step-tags">
+            <span class="tag teal">clarity</span>
+            <span class="tag teal">confidence</span>
+            <span class="tag teal">capacity</span>
+            <span class="tag violet">constraint guess</span>
+            <span class="tag peach">emotional tone</span>
+            <span class="tag dim">contradictions</span>
+            <span class="tag dim">relationship health</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node violet">3</div>
+        <div class="step-content">
+          <div class="step-name">Separate Fact from Interpretation</div>
+          <div class="step-detail">What the person actually said always wins over what Mira thinks they meant. If someone says "I'm fine," that overrides a frustrated-sounding tone.</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node violet">4</div>
+        <div class="step-content">
+          <div class="step-name">Decide What to Do Next</div>
+          <div class="step-detail">21 rules check the conversation state in priority order. Safety comes first (is the person overwhelmed? frustrated?), then diagnostic progress (explore, validate, diagnose).</div>
+          <div class="step-tags">
+            <span class="tag peach">Safety first</span>
+            <span class="tag dim">Then explore, validate, or diagnose</span>
+            <span class="tag dim">Always has a fallback</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node peach">5</div>
+        <div class="step-content">
+          <div class="step-name">Build Mira's Instructions</div>
+          <div class="step-detail">A custom set of instructions is assembled for this exact moment — Mira's personality + what phase we're in + any emotional adjustments needed + the right conversation style for this person.</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node peach">6</div>
+        <div class="step-content">
+          <div class="step-name">Generate the Response</div>
+          <div class="step-detail">Claude (Anthropic's AI) writes Mira's response using those custom instructions and the full conversation history.</div>
+        </div>
+      </div>
+
+      <div class="pipeline-step reveal">
+        <div class="step-node teal">7</div>
+        <div class="step-content">
+          <div class="step-name">Quality Check</div>
+          <div class="step-detail">Before sending, we verify the response actually does what it's supposed to. No accidentally pushing a sale during exploration. No diagnosing before asking permission. If it fails, we regenerate.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 2: MEMORY ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 02</div>
+    <h2 class="section-title">Mira Remembers Everything</h2>
+    <p class="section-desc">
+      Three systems help Mira get smarter as the conversation progresses — she never goes in circles, never sounds repetitive, and tracks the person's growing awareness.
+    </p>
+
+    <div class="card-grid">
+      <div class="card reveal">
+        <div class="card-icon teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <h3>What We've Covered</h3>
+        <p>Tracks every topic discussed and calculates how much ground we've covered. When we've explored enough territory, Mira knows it's time to move toward a diagnosis instead of asking more questions.</p>
+        <div class="card-detail">
+          <ul>
+            <li>Identifies new topics each turn</li>
+            <li>After 8+ topics, starts moving toward answers</li>
+            <li>Won't revisit things already discussed</li>
+            <li>Progress score: 0–100%</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon violet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.5" stroke-linecap="round">
+            <path d="M4 6h16M4 12h16M4 18h8"/>
+          </svg>
+        </div>
+        <h3>Fresh Language</h3>
+        <p>Mira rotates through different ways of acknowledging, reflecting, and asking questions. No two insight moments sound the same — and she limits deep reflections to 3 per conversation so they feel earned.</p>
+        <div class="card-detail">
+          <ul>
+            <li>6+ ways to open an insight</li>
+            <li>5+ ways to check if something resonates</li>
+            <li>At least 3 turns between deep reflections</li>
+            <li>Tracks every phrase to avoid repeats</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon peach">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--peach-warm)" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <h3>Growth Tracking</h3>
+        <p>Follows the person's journey from surface-level answers to real self-understanding. Measures the quality of their insights, not just how many words they type.</p>
+        <div class="card-detail">
+          <ul>
+            <li>Counts genuine insights (not just "yeah, totally")</li>
+            <li>Notes when they spot their own contradictions</li>
+            <li>Tracks expertise: newcomer to experienced</li>
+            <li>Self-awareness: starting out to deeply reflective</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 3: RELATIONSHIP ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 03</div>
+    <h2 class="section-title">Mira Reads the Room</h2>
+    <p class="section-desc">
+      She tracks the relationship in real time across four dimensions — and adjusts how she talks based on who this person is, not just what they said.
+    </p>
+
+    <div class="rel-tracks">
+      <div class="rel-track reveal">
+        <div class="rel-track-label teal">How Engaged Are They?</div>
+        <div class="rel-steps">
+          <span class="rel-node teal">Highly engaged</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node dim">Moderate</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node dim">Low effort</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node danger">Pushing back</span>
+        </div>
+        <div class="rel-desc">Based on how much detail they share, whether they build on Mira's observations, or give one-word answers</div>
+      </div>
+
+      <div class="rel-track reveal">
+        <div class="rel-track-label violet">How Much Do They Trust Mira?</div>
+        <div class="rel-steps">
+          <span class="rel-node dim">Just starting</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node violet">Growing</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node violet">Solid</span>
+          <span class="rel-arrow" style="color: #f87171;">⤹</span>
+          <span class="rel-node danger">Broken</span>
+        </div>
+        <div class="rel-desc">Trust only goes up — unless Mira misses the mark badly. Recovery requires real understanding, not just "sorry about that."</div>
+      </div>
+
+      <div class="rel-track reveal">
+        <div class="rel-track-label peach">What Kind of Person Are They?</div>
+        <div class="rel-steps" style="flex-wrap: wrap; gap: 8px;">
+          <span class="rel-node dim">Open &amp; reflective</span>
+          <span class="rel-node peach">Straight to the point</span>
+          <span class="rel-node dim">Testing the tool</span>
+          <span class="rel-node dim">Working through feelings</span>
+        </div>
+        <div class="rel-desc">A straight-to-the-point person gets concise answers. Someone working through feelings gets more space and validation.</div>
+      </div>
+
+      <div class="rel-track reveal">
+        <div class="rel-track-label" style="color: #f87171;">Are They Getting Frustrated?</div>
+        <div class="rel-steps">
+          <span class="rel-node dim">Not at all</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node dim">A little</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node danger">Clearly</span>
+          <span class="rel-arrow">→</span>
+          <span class="rel-node danger">Hostile</span>
+        </div>
+        <div class="rel-desc">Each level gets a different response: gentle acknowledgment, a repair attempt, or a firm but respectful boundary.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 4: DYNAMIC PROMPTING ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 04</div>
+    <h2 class="section-title">Every Response Is Custom-Built</h2>
+    <p class="section-desc">
+      Mira doesn't follow a script. Every turn, her instructions are assembled from building blocks — 48 in total — chosen based on what's happening right now.
+    </p>
+
+    <div class="assembly-diagram reveal">
+      <div class="assembly-layer base">
+        <strong>Who Mira Is</strong> — her personality, Danny's methodology, tone guidelines
+      </div>
+      <div class="assembly-connector"></div>
+      <div class="assembly-layer overlay">
+        <strong>What Phase We're In</strong> — getting context, exploring, validating, diagnosing, or closing
+      </div>
+      <div class="assembly-connector"></div>
+      <div class="assembly-layer overlay">
+        <strong>Emotional Adjustments</strong> — extra care if they're overwhelmed, frustrated, or trust is low
+      </div>
+      <div class="assembly-connector"></div>
+      <div class="assembly-layer context">
+        <strong>Communication Style</strong> — matched to their personality and energy level
+      </div>
+      <div class="assembly-connector"></div>
+      <div class="assembly-result">
+        = A unique set of instructions for this exact moment
+      </div>
+    </div>
+
+    <div style="margin-top: 52px;">
+      <h3 style="font-size: 19px; font-weight: 600; margin-bottom: 28px;">The 48 Building Blocks</h3>
+
+      <div class="overlay-viz reveal">
+        <div class="overlay-row">
+          <div class="overlay-category teal">By Phase</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Getting context</span>
+            <span class="overlay-chip">Exploring</span>
+            <span class="overlay-chip">Forming a theory</span>
+            <span class="overlay-chip">Going deeper</span>
+            <span class="overlay-chip">Validating</span>
+            <span class="overlay-chip">Asking to diagnose</span>
+            <span class="overlay-chip">Sharing diagnosis</span>
+          </div>
+        </div>
+
+        <div class="overlay-row">
+          <div class="overlay-category violet">Closing</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Reflect implications</span>
+            <span class="overlay-chip">Name what's at stake</span>
+            <span class="overlay-chip">Identify the gap</span>
+            <span class="overlay-chip">Check alignment</span>
+            <span class="overlay-chip">Offer the next step</span>
+            <span class="overlay-chip">Facilitate booking</span>
+            <span class="overlay-chip">Self-directed path</span>
+            <span class="overlay-chip">One small action</span>
+          </div>
+        </div>
+
+        <div class="overlay-row">
+          <div class="overlay-category peach">Emotional</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Calm overwhelm</span>
+            <span class="overlay-chip">Repair frustration</span>
+            <span class="overlay-chip">Acknowledge impatience</span>
+            <span class="overlay-chip">Rebuild trust</span>
+            <span class="overlay-chip">Set a boundary</span>
+            <span class="overlay-chip">Mirror a breakthrough</span>
+          </div>
+        </div>
+
+        <div class="overlay-row">
+          <div class="overlay-category dim">Style</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Direct &amp; concise</span>
+            <span class="overlay-chip">For skeptics</span>
+            <span class="overlay-chip">Emotional space</span>
+            <span class="overlay-chip">Re-engage (3 levels)</span>
+            <span class="overlay-chip">Redirect tangents</span>
+          </div>
+        </div>
+
+        <div class="overlay-row">
+          <div class="overlay-category dim">Safety Nets</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Respectful exit</span>
+            <span class="overlay-chip">Natural close</span>
+            <span class="overlay-chip">After boundary</span>
+            <span class="overlay-chip">Low engagement exit</span>
+            <span class="overlay-chip">Time limit close</span>
+            <span class="overlay-chip">After completion</span>
+          </div>
+        </div>
+
+        <div class="overlay-row">
+          <div class="overlay-category dim">Diagnostic</div>
+          <div class="overlay-items">
+            <span class="overlay-chip">Surface contradictions</span>
+            <span class="overlay-chip">Define success</span>
+            <span class="overlay-chip">Test the theory</span>
+            <span class="overlay-chip">Check readiness</span>
+            <span class="overlay-chip">Try a different angle</span>
+            <span class="overlay-chip">Go one level deeper</span>
+            <span class="overlay-chip">Check for blockers</span>
+            <span class="overlay-chip">Explore readiness</span>
+            <span class="overlay-chip">Check root cause</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 5: DANNY'S METHODOLOGY ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 05</div>
+    <h2 class="section-title">Built on Danny's Framework</h2>
+    <p class="section-desc">
+      Mira isn't just asking questions — she's applying Danny's diagnostic thinking in real time. Every principle he teaches is built into how she reasons.
+    </p>
+
+    <div class="quote-block reveal">
+      <div class="quote-text">Most people aren't confused — they're avoiding something they already suspect is true.</div>
+      <div class="quote-attr">— Danny Iny, core principle built into Mira</div>
+    </div>
+
+    <div class="method-grid">
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon teal"></span> One Bottleneck</div>
+        <div class="method-desc">Every business has one primary thing holding it back. Mira's job isn't to list 10 problems — it's to find the one that, once resolved, unlocks everything else.</div>
+      </div>
+
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon violet"></span> The Lamppost Problem</div>
+        <div class="method-desc">People tend to work on familiar, comfortable problems while avoiding the harder real issue. Mira gently steers toward the uncomfortable truth.</div>
+      </div>
+
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon peach"></span> Frozen Intent</div>
+        <div class="method-desc">Sometimes people genuinely want change but feel stuck — not because they don't trust the process, but because they've been disappointed too many times. Mira recognizes and names this.</div>
+      </div>
+
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon teal"></span> What's Really Missing?</div>
+        <div class="method-desc">When someone isn't taking action, it's either motivation, ability, or a trigger that's missing. Mira figures out which one instead of assuming they just need a push.</div>
+      </div>
+
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon violet"></span> Better Questions</div>
+        <div class="method-desc">"What would have to be true for that to be the right move?" Mira uses questions like these to cut through overthinking and surface what someone actually believes.</div>
+      </div>
+
+      <div class="method-item reveal">
+        <div class="method-name"><span class="icon peach"></span> One Small Step</div>
+        <div class="method-desc">"You can't steer a parked car." For someone who isn't ready for coaching, Mira gives them one concrete thing to do — just enough to create forward motion.</div>
+      </div>
+    </div>
+
+    <div class="voice-card reveal">
+      <h4>How Mira Sounds</h4>
+      <div class="voice-principles">
+        <div class="voice-principle"><span class="check">&#10003;</span> Like a warm, smart friend — not a consultant</div>
+        <div class="voice-principle"><span class="check">&#10003;</span> Direct but kind, confident not preachy</div>
+        <div class="voice-principle"><span class="check">&#10003;</span> Connects the dots — never just repeats back</div>
+        <div class="voice-principle"><span class="check">&#10003;</span> Says the thing they haven't said yet</div>
+        <div class="voice-principle"><span class="check">&#10003;</span> Keeps it short — 2-3 sentences while exploring</div>
+        <div class="voice-principle"><span class="check">&#10003;</span> Asks the question behind the question</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ================ SECTION 6: THREE CONSTRAINTS ================ -->
+  <section class="section reveal">
+    <div class="section-label"><span class="line"></span> Section 06</div>
+    <h2 class="section-title">The Three Constraints</h2>
+    <p class="section-desc">
+      This is the diagnosis. Every coaching business has a primary bottleneck — Mira identifies which one and points them to the right program.
+    </p>
+
+    <div class="constraint-cards">
+      <div class="constraint-card strategy reveal">
+        <div class="c-percent">~34%</div>
+        <div class="c-range">23–45% of users</div>
+        <div class="c-name">Strategy</div>
+        <div class="c-desc">Not sure where to focus. Multiple options, unclear positioning, can't commit to a direction.</div>
+        <div class="c-program">→ EC Program</div>
+        <div class="c-signals">
+          <div class="sig">"I'm not sure which offer to lead with"</div>
+          <div class="sig">"I don't know who my ideal client is"</div>
+          <div class="sig">"Too many niches to choose from"</div>
+        </div>
+      </div>
+
+      <div class="constraint-card execution reveal">
+        <div class="c-percent">~42%</div>
+        <div class="c-range">35–50% of users</div>
+        <div class="c-name">Execution</div>
+        <div class="c-desc">Knows what to do but drowning. At capacity, doing everything themselves, needs systems and help.</div>
+        <div class="c-program">→ MIST Program</div>
+        <div class="c-signals">
+          <div class="sig">"I'm working 60 hours a week"</div>
+          <div class="sig">"I tried hiring but nothing sticks"</div>
+          <div class="sig">"Doing everything myself"</div>
+        </div>
+      </div>
+
+      <div class="constraint-card psychology reveal">
+        <div class="c-percent">~24%</div>
+        <div class="c-range">20–35% of users</div>
+        <div class="c-name">Psychology</div>
+        <div class="c-desc">Has the knowledge and time, but internal blocks — fear, self-doubt, burnout — prevent action.</div>
+        <div class="c-program">→ EC Program</div>
+        <div class="c-signals">
+          <div class="sig">"I know what to do but I don't do it"</div>
+          <div class="sig">"I'm afraid of being judged"</div>
+          <div class="sig">"I undersell myself constantly"</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cross-map reveal">
+      <h4>Sometimes the Real Issue Is Deeper</h4>
+      <p>Mira checks whether the surface problem points to something else underneath — and redirects the diagnosis when it does.</p>
+      <div class="cross-map-arrows">
+        <div class="cross-map-item">
+          <span class="rel-node dim" style="font-size: 13px;">Scattered tactics</span>
+          <span class="arrow-icon">→</span>
+          <span class="rel-node violet" style="font-size: 13px;">Actually a strategy problem</span>
+        </div>
+        <div class="cross-map-item">
+          <span class="rel-node dim" style="font-size: 13px;">Can't decide anything</span>
+          <span class="arrow-icon">→</span>
+          <span class="rel-node peach" style="font-size: 13px;">Actually fear or burnout</span>
+        </div>
+        <div class="cross-map-item">
+          <span class="rel-node dim" style="font-size: 13px;">Total burnout</span>
+          <span class="arrow-icon">→</span>
+          <span class="rel-node teal" style="font-size: 13px;">Actually broken systems</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">Coach<em>Mira</em></div>
+  <div class="footer-sub">Built by Mirasee &middot; Powered by Danny's methodology</div>
+</div>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

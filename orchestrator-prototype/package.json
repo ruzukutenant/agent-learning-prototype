@@ -1,0 +1,20 @@
+{
+  "name": "orchestrator-prototype",
+  "version": "0.1.0",
+  "description": "Orchestration-driven conversation architecture prototype - intelligence in code, not prompts",
+  "type": "module",
+  "scripts": {
+    "test": "tsx test/run-test.ts",
+    "test:all": "tsx test/run-all-personas.ts",
+    "test:watch": "tsx watch test/run-test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "zod": "^4.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
